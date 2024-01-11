@@ -8,11 +8,12 @@ repos:
       # pre-commit's default_language_version, see
       # https://pre-commit.com/#top_level-default_language_version
       #language_version: python3.11
--   repo: https://github.com/pycqa/flake8.git
-    rev: 3.9.2
+-   repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
     hooks:
-    - id: flake8
-      exclude: 'tests|env|docs'
+    -   id: flake8
+        additional_dependencies: [flake8-typing-imports==1.10.0]
+        exclude: ^site-pacakges/
 -   repo: https://github.com/PyCQA/pydocstyle
     rev: 4.0.1
     hooks:
