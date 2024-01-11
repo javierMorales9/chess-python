@@ -301,7 +301,7 @@ class Cell:
 
 
 class Move:
-    def __init__(self, moveStr: str):
+    def __init__(self, moveStr):
         match = re.search("([A-H])([1-8]) - ([A-H])([1-8])", moveStr)
 
         if match is not None:
