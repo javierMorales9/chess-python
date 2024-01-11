@@ -1,0 +1,10 @@
+name: ajedrez-env
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python=3.8.3
+- flake8=3.8.2
+- pydocstyle=4.0.1
+- mypy=0.770
+- black=19.10b

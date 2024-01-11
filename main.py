@@ -1,5 +1,6 @@
 import re
 
+
 class Position:
     def __init__(self, row, col):
         if row < 0 or row > 7 or col < 0 or col > 7:
@@ -7,7 +8,7 @@ class Position:
 
         self.row = row
         self.col = col
-    
+
     def __eq__(self, other):
         return self.row == other.row and self.col == other.col
 
@@ -19,183 +20,213 @@ class Position:
 
     def isInDiagonalForward(self, origin, distance, turn):
         if turn.isBlack():
-            return origin.row - self.row == distance and abs(self.col - origin.col) == distance
+            return (
+                origin.row - self.row == distance
+                and abs(self.col - origin.col) == distance
+            )
         else:
-            return self.row - origin.row == distance and abs(self.col - origin.col) == distance
+            return (
+                self.row - origin.row == distance
+                and abs(self.col - origin.col) == distance
+            )
 
-pawnRules =  [
+
+pawnRules = [
     {
         "description": "Pawn moves two cells forwars as first move",
-        "precons":  [
+        "precons": [
             {
                 "description": "Pawn is in its first position",
-
-                "fn": lambda move, board, originalPosition, turn: 
-                    move.origin == originalPosition
+                "fn": lambda move, board, originalPosition, turn: move.origin
+                == originalPosition,
             },
             {
                 "description": "Pawn is not blocked",
-                "fn": lambda move, board, originalPosition, turn:
-                    not board.isPieceInPosition(move.dest)
+                "fn": lambda move, board, originalPosition, turn: not board.isPieceInPosition(
+                    move.dest
+                ),
             },
             {
                 "description": "Pawn moves two cells forward",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.dest.isForward(move.origin, 2, turn)
-            }
+                "fn": lambda move, board, originalPosition, turn: move.dest.isForward(
+                    move.origin, 2, turn
+                ),
+            },
         ],
-        "postcon": lambda move, board: 
-            [(move.origin, None), (move.dest, board.pieceInPosition(move.origin))]
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+        ],
     },
     {
         "description": "Pawn moves one cells forward",
-        "precons":  [
+        "precons": [
             {
                 "description": "Pawn is not blocked",
-                "fn": lambda move, board, originalPosition, turn:
-                    not board.isPieceInPosition(move.dest)
+                "fn": lambda move, board, originalPosition, turn: not board.isPieceInPosition(
+                    move.dest
+                ),
             },
             {
                 "description": "Pawn moves one cell forward",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.dest.isForward(move.origin, 1, turn)
-            }
+                "fn": lambda move, board, originalPosition, turn: move.dest.isForward(
+                    move.origin, 1, turn
+                ),
+            },
         ],
-        "postcon": lambda move, board: 
-            [
-                (move.origin, None),
-                (move.dest, board.pieceInPosition(move.origin)),
-            ]
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+        ],
     },
     {
         "description": "Pawn takes an enemy piece",
-        "precons":  [
+        "precons": [
             {
                 "description": "Destination Piece belongs to enemy",
-                "fn": lambda move, board, originalPosition, turn:
-                    board.pieceInPosition(move.dest) and not turn.doesPieceBelongToTurn(board.pieceInPosition(move.dest))
+                "fn": lambda move, board, originalPosition, turn: board.pieceInPosition(
+                    move.dest
+                )
+                and not turn.doesPieceBelongToTurn(board.pieceInPosition(move.dest)),
             },
             {
                 "description": "Enemy piece in 1 diagonal forward position",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.dest.isInDiagonalForward(move.origin, 1, turn)
+                "fn": lambda move, board, originalPosition, turn: move.dest.isInDiagonalForward(
+                    move.origin, 1, turn
+                ),
             },
         ],
-        "postcon": lambda move, board: 
-            [(move.origin, None), (move.dest, board.pieceInPosition(move.origin))]
-    }
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+        ],
+    },
 ]
 
-towerRules =  [
+towerRules = [
     {
         "description": "Castling",
-        "precons":  [
+        "precons": [
             {
                 "description": "The piece is in its original position",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.origin == originalPosition
+                "fn": lambda move, board, originalPosition, turn: move.origin
+                == originalPosition,
             },
             {
                 "description": "King is in its original position",
-                "fn": lambda move, board, originalPosition, turn:
-                    board.isKingInOriginalPosition(turn)
+                "fn": lambda move, board, originalPosition, turn: board.isKingInOriginalPosition(
+                    turn
+                ),
             },
             {
                 "description": "Destination is right next to the king",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.dest.col == 3 or move.dest.col == 5
+                "fn": lambda move, board, originalPosition, turn: move.dest.col == 3
+                or move.dest.col == 5,
             },
             {
                 "description": "There are no pieces in the way",
-                "fn": lambda move, board, originalPosition, turn:
-                    len(board.piecesInLine(move.origin, move.dest)) == 0
+                "fn": lambda move, board, originalPosition, turn: len(
+                    board.piecesInLine(move.origin, move.dest)
+                )
+                == 0,
             },
         ],
-        "postcon": lambda move, board: 
-            [
-                (move.origin, None),
-                (move.dest, board.pieceInPosition(move.origin)),
-                (
-                    Position(move.dest.row, 2 if move.dest.col == 3 else 6),
-                    board.pieceInPosition(Position(move.dest.row, 4))
-                ),
-                (Position(move.dest.row, 4), None)
-            ]
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+            (
+                Position(move.dest.row, 2 if move.dest.col == 3 else 6),
+                board.pieceInPosition(Position(move.dest.row, 4)),
+            ),
+            (Position(move.dest.row, 4), None),
+        ],
     },
     {
         "description": "Tower moves in a straight line",
-        "precons":  [
+        "precons": [
             {
                 "description": "There is a straight line between origin and destination",
-
-                "fn": lambda move, board, originalPosition, turn: 
-                    move.origin.row == move.dest.row or move.origin.col == move.dest.col
+                "fn": lambda move, board, originalPosition, turn: move.origin.row
+                == move.dest.row
+                or move.origin.col == move.dest.col,
             },
             {
                 "description": "The destination is not an ally",
-
-                "fn": lambda move, board, originalPosition, turn: 
-                    not turn.doesPieceBelongToTurn(board.pieceInPosition(move.dest))
+                "fn": lambda move, board, originalPosition, turn: not turn.doesPieceBelongToTurn(
+                    board.pieceInPosition(move.dest)
+                ),
             },
             {
                 "description": "There are no pieces in the way",
-                "fn": lambda move, board, originalPosition, turn:
-                    len(board.piecesInLine(move.origin, move.dest)) == 0
+                "fn": lambda move, board, originalPosition, turn: len(
+                    board.piecesInLine(move.origin, move.dest)
+                )
+                == 0,
             },
         ],
-        "postcon": lambda move, board: 
-            [(move.origin, None), (move.dest, board.pieceInPosition(move.origin))]
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+        ],
     },
 ]
 
-kingRules =  [
+kingRules = [
     {
         "description": "King moves one cell in any direction",
-        "precons":  [
+        "precons": [
             {
                 "description": "There is a straight line between origin and destination",
-
-                "fn": lambda move, board, originalPosition, turn: 
-                    abs(move.origin.row - move.dest.row) <= 1 and abs(move.origin.col - move.dest.col) <= 1
+                "fn": lambda move, board, originalPosition, turn: abs(
+                    move.origin.row - move.dest.row
+                )
+                <= 1
+                and abs(move.origin.col - move.dest.col) <= 1,
             },
         ],
-        "postcon": lambda move, board: 
-            [(move.origin, None), (move.dest, board.pieceInPosition(move.origin))]
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+        ],
     },
     {
         "description": "Castling",
-        "precons":  [
+        "precons": [
             {
                 "description": "The piece is in its original position",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.origin == originalPosition
+                "fn": lambda move, board, originalPosition, turn: move.origin
+                == originalPosition,
             },
             {
                 "description": "The destination is correct",
-                "fn": lambda move, board, originalPosition, turn:
-                    move.dest.col == 2 or move.dest.col == 6
+                "fn": lambda move, board, originalPosition, turn: move.dest.col == 2
+                or move.dest.col == 6,
             },
             {
                 "description": "The corresponding tower is in its original position",
-                "fn": lambda move, board, originalPosition, turn:
-                    board.isTower(Position(move.origin.row, 0 if move.dest.col == 2 else 7), turn)
+                "fn": lambda move, board, originalPosition, turn: board.isTower(
+                    Position(move.origin.row, 0 if move.dest.col == 2 else 7), turn
+                ),
             },
             {
                 "description": "There are no pieces in the way",
-                "fn": lambda move, board, originalPosition, turn:
-                    len(board.piecesInLine(move.origin, move.dest)) == 0
+                "fn": lambda move, board, originalPosition, turn: len(
+                    board.piecesInLine(move.origin, move.dest)
+                )
+                == 0,
             },
         ],
-        "postcon": lambda move, board: 
-            [
-                (move.origin, None),
-                (move.dest, board.pieceInPosition(move.origin)),
-                (
-                    Position(move.dest.row, 3 if move.dest.col == 2 else 5),
-                    board.pieceInPosition(Position(move.dest.row, 0 if move.dest.col == 2 else 7))
+        "postcon": lambda move, board: [
+            (move.origin, None),
+            (move.dest, board.pieceInPosition(move.origin)),
+            (
+                Position(move.dest.row, 3 if move.dest.col == 2 else 5),
+                board.pieceInPosition(
+                    Position(move.dest.row, 0 if move.dest.col == 2 else 7)
                 ),
-                (Position(move.dest.row, 0 if move.dest.col == 2 else 7), None)
-            ]
+            ),
+            (Position(move.dest.row, 0 if move.dest.col == 2 else 7), None),
+        ],
     },
 ]
 
@@ -268,15 +299,17 @@ class Cell:
     def hasPiece(self):
         return self.piece is not None
 
+
 class Move:
-    def __init__(self, moveStr):
-        match = re.search("([A-H])([1-8]) - ([A-H])([1-8])", moveStr).groups(0)
+    def __init__(self, moveStr: str):
+        match = re.search("([A-H])([1-8]) - ([A-H])([1-8])", moveStr)
 
         if match is not None:
-            origin = Position(int(match[1]) - 1, ord(match[0]) - ord('A'))
-            destination = Position(int(match[3]) - 1, ord(match[2]) - ord('A'))
+            data = match.groups(0)
+            origin = Position(int(data[1]) - 1, ord(str(data[0])) - ord("A"))
+            destination = Position(int(data[3]) - 1, ord(str(data[2])) - ord("A"))
 
-            if(origin == destination):
+            if origin == destination:
                 raise Exception("Invalid move: origin and destination are the same")
 
             self.origin = origin
@@ -284,12 +317,13 @@ class Move:
         else:
             raise Exception("Invalid move: bad format")
 
+
 class Board:
     def __init__(self):
         self.board = [[Cell(Position(y, x), None) for x in range(8)] for y in range(8)]
 
         for piece in pieces:
-            pos = pieces[piece]['originalPosition']
+            pos = pieces[piece]["originalPosition"]
             cell = self.board[pos.row][pos.col]
             cell.setPiece(piece)
 
@@ -318,7 +352,9 @@ class Board:
         elif origin.col == dest.col:
             return self.piecesInColumn(origin, dest)
         else:
-            raise Exception("Invalid move: origin and destination are not in the same line")
+            raise Exception(
+                "Invalid move: origin and destination are not in the same line"
+            )
 
     def piecesInRow(self, origin, dest):
         if origin.col > dest.col:
@@ -346,21 +382,27 @@ class Board:
 
     def isKingInOriginalPosition(self, turn):
         if turn.isBlack():
-            return self.pieceInPosition(pieces[blackKingName]["originalPosition"]) == blackKingName
+            return (
+                self.pieceInPosition(pieces[blackKingName]["originalPosition"])
+                == blackKingName
+            )
         else:
-            return self.pieceInPosition(pieces[whiteKingName]["originalPosition"]) == whiteKingName
+            return (
+                self.pieceInPosition(pieces[whiteKingName]["originalPosition"])
+                == whiteKingName
+            )
 
     def isTower(self, pos, turn):
         piece = self.pieceInPosition(pos)
         if turn.isBlack():
-            return  piece == blackRightTowerName or piece == blackLeftTowerName
+            return piece == blackRightTowerName or piece == blackLeftTowerName
         else:
             return piece == whiteRightTowerName or piece == whiteLeftTowerName
 
 
 class Turn:
     def __init__(self):
-        self.turn = 'W'
+        self.turn = "W"
 
     def doesPieceBelongToTurn(self, piece):
         if piece is None:
@@ -369,13 +411,14 @@ class Turn:
         return piece[1] == self.turn
 
     def toggle(self):
-        if self.turn == 'W':
-            self.turn = 'B'
+        if self.turn == "W":
+            self.turn = "B"
         else:
-            self.turn = 'W'
+            self.turn = "W"
 
     def isBlack(self):
-        return self.turn == 'B'
+        return self.turn == "B"
+
 
 class Game:
     def __init__(self, painter):
@@ -411,15 +454,15 @@ class Game:
 
         return pieceName
 
-    def checkIfPieceBelongsToTurn(self ,pieceName):
+    def checkIfPieceBelongsToTurn(self, pieceName):
         if not self.turn.doesPieceBelongToTurn(pieceName):
             raise Exception("Invalid move: piece does not belong to current player")
 
     def getFirstValidRule(self):
-        rules = self.pieceData['rules']
+        rules = self.pieceData["rules"]
 
         for rule in rules:
-            if self.validPrecons(rule['precons']):
+            if self.validPrecons(rule["precons"]):
                 return rule
 
         return None
@@ -427,17 +470,17 @@ class Game:
     def validPrecons(self, precons):
         move = self.move
         board = self.board
-        originalPosition = self.pieceData['originalPosition']
+        originalPosition = self.pieceData["originalPosition"]
         turn = self.turn
 
         for precon in precons:
-            if not precon['fn'](move, board, originalPosition, turn):
+            if not precon["fn"](move, board, originalPosition, turn):
                 return False
 
         return True
 
     def applyRule(self, rule):
-        postcon = rule['postcon'] 
+        postcon = rule["postcon"]
         move = self.move
         board = self.board
 
@@ -448,18 +491,19 @@ class Game:
     def hasWon(self):
         return False
 
+
 class BoardPainter:
     def paint(self, board):
         for row in reversed(range(board.rowNumber())):
-            print(row + 1, end='  ')
+            print(row + 1, end="  ")
             for col in range(board.columnNumber()):
                 piece = board.pieceInPosition(Position(row, col))
                 if not piece:
-                    print('', end='    ')
+                    print("", end="    ")
                 else:
-                    print(piece, end=' ')
+                    print(piece, end=" ")
             print()
-        print('    A   B   C   D   E   F   G   H')
+        print("    A   B   C   D   E   F   G   H")
 
 
 painter = BoardPainter()
@@ -473,10 +517,9 @@ while True:
         game.executeMove(move)
 
         if game.hasWon():
-            print("Player " + game.turn + " wins!")
+            print("Player " + game.turn.turn + " wins!")
             break
 
         game.nextTurn()
     except Exception as e:
         print(e)
-
